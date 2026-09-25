@@ -40,10 +40,7 @@ class CircuitBreaker:
     @property
     def open(self) -> bool:
         with self._lock:
-            return (
-                self._opened_at > 0
-                and time.monotonic() - self._opened_at < self.reset_timeout
-            )
+            return self._opened_at > 0 and time.monotonic() - self._opened_at < self.reset_timeout
 
     def allow(self) -> bool:
         with self._lock:
@@ -97,9 +94,7 @@ class TokenBucket:
             raise ValueError("cost must be positive")
         with self._lock:
             now = time.monotonic()
-            self.tokens = min(
-                self.capacity, self.tokens + (now - self.updated) * self.rate
-            )
+            self.tokens = min(self.capacity, self.tokens + (now - self.updated) * self.rate)
             self.updated = now
             if self.tokens < cost:
                 return False
