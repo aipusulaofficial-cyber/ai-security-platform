@@ -1,4 +1,4 @@
-from security_platform import *
+from security_platform import AuditLog, SecurityPolicy
 
 
 def test_threat_is_denied_and_audited():
