@@ -1,10 +1,14 @@
 """Dependency-free resilience primitives for service boundaries."""
 
 from __future__ import annotations
-import random, threading, time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+
+import random
+import threading
+import time
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass
-from typing import Callable
 
 
 class CircuitOpenError(RuntimeError):
