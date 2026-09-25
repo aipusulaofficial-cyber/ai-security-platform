@@ -1,10 +1,12 @@
 """Dependency-free resilience primitives for service boundaries."""
 from __future__ import annotations
 import random,threading,time
+from concurrent.futures import ThreadPoolExecutor,TimeoutError as FutureTimeout
 from dataclasses import dataclass
 from typing import Callable,Generic,TypeVar
 T=TypeVar("T")
 class CircuitOpenError(RuntimeError): pass
+class OperationTimeoutError(TimeoutError): pass
 @dataclass(frozen=True)
 class RetryPolicy:
     attempts:int=3; base_delay:float=0.05; max_delay:float=1.0; jitter:float=0.1
@@ -46,6 +48,25 @@ class TokenBucket:
             now=time.monotonic();self.tokens=min(self.capacity,self.tokens+(now-self.updated)*self.rate);self.updated=now
             if self.tokens<cost:return False
             self.tokens-=cost;return True
+class IdempotencyKeyStore(Generic[T]):
+    def __init__(self):self._results={};self._locks={};self._guard=threading.Lock()
+    def execute_once(self,key:str,fn:Callable[[],T])->T:
+        if not key:raise ValueError("idempotency key required")
+        with self._guard:lock=self._locks.setdefault(key,threading.Lock())
+        with lock:
+            if key in self._results:return self._results[key]
+            result=fn();self._results[key]=result;return result
+def call_with_timeout(fn:Callable[[],T],timeout_seconds:float)->T:
+    if timeout_seconds<=0:raise ValueError("timeout must be positive")
+    executor=ThreadPoolExecutor(max_workers=1);future=executor.submit(fn)
+    try:return future.result(timeout=timeout_seconds)
+    except FutureTimeout as exc:future.cancel();raise OperationTimeoutError("operation timed out") from exc
+    finally:executor.shutdown(wait=False,cancel_futures=True)
+def with_fallback(primary:Callable[[],T],fallback:Callable[[],T],recoverable:Callable[[Exception],bool]=lambda e:True)->T:
+    try:return primary()
+    except Exception as exc:
+        if not recoverable(exc):raise
+        return fallback()
 def call_with_retry(fn:Callable[[],T],*,policy:RetryPolicy,retryable:Callable[[Exception],bool],breaker:CircuitBreaker|None=None)->T:
     if policy.attempts<1:raise ValueError("attempts must be positive")
     if breaker is not None and not breaker.allow():raise CircuitOpenError("circuit is open")
