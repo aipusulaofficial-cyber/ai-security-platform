@@ -1,5 +1,6 @@
+import time
 import pytest
-from resilience import BoundedExecutor,CircuitBreaker,CircuitOpenError,RetryPolicy,TokenBucket,call_with_retry
+from resilience import BoundedExecutor,CircuitBreaker,CircuitOpenError,IdempotencyKeyStore,OperationTimeoutError,RetryPolicy,TokenBucket,call_with_retry,call_with_timeout,with_fallback
 def test_retry_is_bounded():
  n=[]
  def fn():
@@ -12,6 +13,12 @@ def test_non_retryable_fails_once():
  def fn():n.append(1);raise ValueError
  with pytest.raises(ValueError):call_with_retry(fn,policy=RetryPolicy(3,0),retryable=lambda e:False)
  assert len(n)==1
+def test_timeout_is_bounded():
+ with pytest.raises(OperationTimeoutError):call_with_timeout(lambda:time.sleep(0.05),0.001)
+def test_idempotency_executes_once():
+ s=IdempotencyKeyStore();n=[]
+ assert s.execute_once("k",lambda:n.append(1) or "ok")=="ok";assert s.execute_once("k",lambda:n.append(2) or "new")=="ok";assert n==[1]
+def test_graceful_degradation_uses_fallback():assert with_fallback(lambda:1/0,lambda:"degraded")=="degraded"
 def test_concurrency_limit():
  ex=BoundedExecutor(1);ex._sem.acquire()
  try:
