@@ -9,3 +9,6 @@ requires-python=">=3.12"
 dev=["pytest>=8"]
 [tool.pytest.ini_options]
 pythonpath=["."]
+
+[tool.setuptools]
+py-modules=["service"]
