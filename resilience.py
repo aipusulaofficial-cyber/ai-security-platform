@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import Callable
 
 
-
 class CircuitOpenError(RuntimeError):
     pass
 
