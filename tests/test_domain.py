@@ -1,4 +1,4 @@
-from security_domain import *
+from security_domain import inspect_prompt
 
 
 def test_injection():
