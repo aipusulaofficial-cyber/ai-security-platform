@@ -2,8 +2,6 @@ name: temporary-format-fix
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - ".github/workflows/temporary-format-fix.yml"
 permissions:
   contents: write
 jobs:
