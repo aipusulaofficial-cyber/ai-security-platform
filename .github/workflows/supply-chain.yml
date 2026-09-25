@@ -1,0 +1,12 @@
+name: dependency-audit
+on: [push,pull_request]
+permissions: {contents: read}
+jobs:
+ scan:
+  runs-on: ubuntu-latest
+  steps:
+  - uses: actions/checkout@v4
+  - uses: aquasecurity/trivy-action@0.28.0
+    with: {scan-type: fs, scan-ref: ., exit-code: "1", ignore-unfixed: true}
+  - uses: anchore/sbom-action@v0.20.0
+    with: {path: ., format: cyclonedx-json, output-file: sbom.cdx.json}
