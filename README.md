@@ -19,6 +19,9 @@ The repository is structured around explicit responsibilities rather than framew
 - **Observability:** correlation/context propagation and actionable operational signals
 - **Delivery:** reproducible CI validation before changes are considered complete
 
+## Principal engineering contract
+See [docs/PRINCIPAL-ENGINEERING.md](docs/PRINCIPAL-ENGINEERING.md) for the reviewable engineering contract, NFRs, and change-safety checklist.
+
 ## Architecture & decisions
 See [ARCHITECTURE.md](ARCHITECTURE.md) and the ADRs directory for system boundaries, key trade-offs, and extension points.
 
