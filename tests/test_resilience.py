@@ -84,6 +84,4 @@ def test_circuit_open():
     for _ in range(3):
         b.record_failure()
     with pytest.raises(CircuitOpenError):
-        call_with_retry(
-            lambda: "x", policy=RetryPolicy(1), retryable=lambda e: True, breaker=b
-        )
+        call_with_retry(lambda: "x", policy=RetryPolicy(1), retryable=lambda e: True, breaker=b)
