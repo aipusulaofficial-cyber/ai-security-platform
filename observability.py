@@ -1,4 +1,7 @@
-import json, logging, os
+import json
+import logging
+import os
+
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
@@ -44,9 +47,9 @@ class JsonFormatter(logging.Formatter):
 
 
 def get_logger(name):
-    h = logging.StreamHandler()
-    h.setFormatter(JsonFormatter())
-    l = logging.getLogger(name)
-    l.handlers[:] = [h]
-    l.setLevel(os.getenv("LOG_LEVEL", "INFO"))
-    return l
+    handler = logging.StreamHandler()
+    handler.setFormatter(JsonFormatter())
+    logger = logging.getLogger(name)
+    logger.handlers[:] = [handler]
+    logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
+    return logger
