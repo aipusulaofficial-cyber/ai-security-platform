@@ -8,9 +8,7 @@ try:
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 
-    p = TracerProvider(
-        resource=Resource.create({"service.name": "ai-security-platform"})
-    )
+    p = TracerProvider(resource=Resource.create({"service.name": "ai-security-platform"}))
     p.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
     trace.set_tracer_provider(p)
 except Exception:
