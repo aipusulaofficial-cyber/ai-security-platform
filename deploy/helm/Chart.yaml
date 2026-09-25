@@ -1,0 +1,4 @@
+apiVersion: v2
+name: ai-security-platform
+version: 0.1.0
+type: application
