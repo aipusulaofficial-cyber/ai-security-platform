@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from opentelemetry import trace
-from security_domain import *
+from pydantic import BaseModel
+
+from security_domain import inspect_prompt, require_audit_context
 
 try:
     from opentelemetry.sdk.resources import Resource
@@ -13,6 +14,7 @@ try:
     trace.set_tracer_provider(p)
 except Exception:
     pass
+
 app = FastAPI(title="ai-security-platform", version="1.0.0")
 tracer = trace.get_tracer("ai-security-platform")
 
