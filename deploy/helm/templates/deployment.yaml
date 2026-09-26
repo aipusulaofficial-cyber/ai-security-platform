@@ -1,18 +1,47 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: {name: {{ .Chart.Name }}}
+metadata:
+  name: {{ .Chart.Name }}
 spec:
- replicas: {{ .Values.replicaCount }}
- selector: {matchLabels: {app: {{ .Chart.Name }}}}
- template:
-  metadata: {labels: {app: {{ .Chart.Name }}}}
-  spec:
-   securityContext: {runAsNonRoot: true, runAsUser: 10001}
-   containers:
-   - name: api
-     image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-     imagePullPolicy: {{ .Values.image.pullPolicy }}
-     ports: [{containerPort: 8000}]
-     resources: {{- toYaml .Values.resources | nindent 6 }}
-     readinessProbe: {httpGet: {path: /health/ready, port: 8000}, initialDelaySeconds: 5, periodSeconds: 10}
-     livenessProbe: {httpGet: {path: /health/live, port: 8000}, initialDelaySeconds: 10, periodSeconds: 20}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20
