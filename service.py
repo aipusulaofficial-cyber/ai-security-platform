@@ -1,8 +1,7 @@
 import time
 import uuid
 
-from fastapi import FastAPI, HTTPException
-from fastapi import Request as HTTPRequest
+from fastapi import FastAPI, HTTPException, Request as HTTPRequest
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
