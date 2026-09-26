@@ -1,15 +1,46 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: {name: ai-security-platform}
+metadata:
+  name: ai-security-platform
 spec:
- replicas: 2
- selector: {matchLabels: {app: ai-security-platform}}
- template:
-  metadata: {labels: {app: ai-security-platform}}
-  spec:
-   containers:
-   - name: api
-     image: ai-security-platform:latest
-     ports: [{containerPort: 8000}]
-     readinessProbe: {httpGet: {path: /health/ready, port: 8000}}
-     livenessProbe: {httpGet: {path: /health/live, port: 8000}}
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-security-platform
+  template:
+    metadata:
+      labels:
+        app: ai-security-platform
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: ai-security-platform:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8000
