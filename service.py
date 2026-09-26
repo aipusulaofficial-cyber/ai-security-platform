@@ -1,10 +1,30 @@
-from fastapi import FastAPI, HTTPException
+import time
+import uuid
+
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from policy_detector import detect_prompt_injection
 from security_domain import require_audit_context
 
 app = FastAPI(title="ai-security-platform", version="1.1.0")
+
+
+class PrincipalObservabilityMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next) -> Response:
+        request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+        correlation_id = request.headers.get("x-correlation-id") or request_id
+        start = time.perf_counter()
+        response = await call_next(request)
+        response.headers["x-request-id"] = request_id
+        response.headers["x-correlation-id"] = correlation_id
+        response.headers["x-latency-ms"] = f"{(time.perf_counter() - start) * 1000:.3f}"
+        return response
+
+
+app.add_middleware(PrincipalObservabilityMiddleware)
 
 
 class Request(BaseModel):
