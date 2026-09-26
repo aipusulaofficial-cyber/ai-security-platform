@@ -1,5 +1,5 @@
 replicaCount: 2
-image: {repository: ai-security-platform, tag: latest, pullPolicy: IfNotPresent}
+image: {repository: ai-security-platform, tag: "0.1.0", pullPolicy: IfNotPresent}
 service: {port: 80}
 autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 10, targetCPUUtilizationPercentage: 70}
 resources:
