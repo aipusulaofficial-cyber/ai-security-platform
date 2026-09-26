@@ -1,7 +1,7 @@
 import time
 import uuid
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request as HTTPRequest
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
@@ -13,7 +13,7 @@ app = FastAPI(title="ai-security-platform", version="1.1.0")
 
 
 class PrincipalObservabilityMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(self, request: HTTPRequest, call_next) -> Response:
         request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
         correlation_id = request.headers.get("x-correlation-id") or request_id
         start = time.perf_counter()
@@ -27,7 +27,7 @@ class PrincipalObservabilityMiddleware(BaseHTTPMiddleware):
 app.add_middleware(PrincipalObservabilityMiddleware)
 
 
-class Request(BaseModel):
+class SecurityRequest(BaseModel):
     key: str = Field(min_length=1, max_length=128)
     payload: dict[str, object] = Field(default_factory=dict)
 
@@ -43,7 +43,7 @@ def ready():
 
 
 @app.post("/v1/security")
-def handle(r: Request):
+def handle(r: SecurityRequest):
     prompt = r.payload.get("prompt", "")
     actor = r.payload.get("actor", "")
     if not isinstance(prompt, str) or not isinstance(actor, str):
