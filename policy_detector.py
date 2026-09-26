@@ -1,6 +1,7 @@
 import re
 
-# Pattern catalog\nPATTERNS = (
+# Pattern catalog
+PATTERNS = (
     r"ignore\s+(?:all\s+)?previous\s+instructions",
     r"reveal\s+(?:the\s+)?system\s+prompt",
     r"developer\s+message",
