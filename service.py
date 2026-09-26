@@ -3,7 +3,7 @@ import time
 from fastapi import FastAPI, HTTPException
 from fastapi import Request as FastAPIRequest
 from opentelemetry import trace
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from security_domain import inspect_prompt, require_audit_context
@@ -39,26 +39,35 @@ app.add_middleware(ObservabilityMiddleware)
 
 
 class Request(BaseModel):
-    key: str
-    payload: dict = {}
+    key: str = Field(min_length=1, max_length=128)
+    payload: dict[str, object] = Field(default_factory=dict)
 
 
 @app.get("/health/live")
-def live():
+def live() -> dict[str, str]:
     return {"status": "ok"}
 
 
 @app.get("/health/ready")
-def ready():
+def ready() -> dict[str, str]:
     return {"status": "ready"}
 
 
 @app.post("/v1/security")
-def handle(r: Request):
+def handle(r: Request) -> dict[str, bool | str]:
+    key = r.key.strip()
+    if not key:
+        raise HTTPException(status_code=422, detail="key must not be blank")
+
+    prompt = r.payload.get("prompt", "")
+    actor = r.payload.get("actor", "")
+    if not isinstance(prompt, str) or not isinstance(actor, str):
+        raise HTTPException(status_code=422, detail="prompt and actor must be strings")
+
     with tracer.start_as_current_span("ai-security-platform.domain"):
         try:
-            d = inspect_prompt(r.payload.get("prompt", ""))
-            require_audit_context(r.payload.get("actor", ""), r.key)
+            d = inspect_prompt(prompt)
+            require_audit_context(actor.strip(), key)
             return {"blocked": d.blocked, "reason": d.reason}
-        except (ValueError, KeyError, RuntimeError) as e:
-            raise HTTPException(status_code=400, detail=str(e)) from e
+        except (ValueError, KeyError, RuntimeError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
