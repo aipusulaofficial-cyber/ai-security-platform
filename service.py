@@ -27,9 +27,7 @@ def handle(r: Request):
     prompt = r.payload.get("prompt", "")
     actor = r.payload.get("actor", "")
     if not isinstance(prompt, str) or not isinstance(actor, str):
-        raise HTTPException(
-            status_code=422, detail="prompt and actor must be strings"
-        )
+        raise HTTPException(status_code=422, detail="prompt and actor must be strings")
     try:
         require_audit_context(actor.strip(), r.key)
         detection = detect_prompt_injection(prompt)
