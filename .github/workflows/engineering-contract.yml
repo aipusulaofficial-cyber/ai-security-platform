@@ -1,0 +1,18 @@
+name: Engineering Contract
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    uses: aipusulaofficial-cyber/aipusulaofficial-cyber/.github/workflows/reusable-engineering-contract.yml@main
+    with:
+      python-version: "3.11"
+      run-tests: true
+      run-build: true
