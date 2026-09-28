@@ -1,0 +1,6 @@
+version: "1.0"
+owner: "AIPusula Platform Engineering"
+runtime: "python-or-node"
+test_command: "auto"
+security_command: "auto"
+observability: "contract-evidence-v1"
