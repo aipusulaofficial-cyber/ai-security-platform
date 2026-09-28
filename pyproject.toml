@@ -12,4 +12,4 @@ dev = ["pytest-cov>=5,<7", "mypy>=1.13,<2", "pytest>=8","hypothesis>=6","ruff>=0
 pythonpath=["."]
 
 [tool.setuptools]
-py-modules=["service"]
+py-modules=["observability","policy_detector","resilience","security_domain","security_platform","service"]
