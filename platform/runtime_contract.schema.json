@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"AIPusula Runtime Contract",
+  "type":"object",
+  "required":["request_id","trace_id","stage","decision","timestamp","latency_ms","error","cost_usd"],
+  "properties":{
+    "request_id":{"type":"string","minLength":1},"trace_id":{"type":"string","minLength":1},
+    "stage":{"type":"string","minLength":1},"decision":{"enum":["ALLOW","DENY","FAIL"]},
+    "timestamp":{"type":["string","integer","number"]},"latency_ms":{"type":"number","minimum":0},
+    "error":{"type":["string","null"]},"cost_usd":{"type":"number","minimum":0},
+    "retry_count":{"type":"integer","minimum":0},
+    "circuit_state":{"enum":["CLOSED","OPEN","HALF_OPEN","UNKNOWN"]}
+  },
+  "additionalProperties":true
+}
