@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   contract:
-    uses: aipusulaofficial-cyber/aipusulaofficial-cyber/.github/workflows/reusable-engineering-contract.yml@a611598563ad45805b017b3ecc0941478906729f
+    uses: aipusulaofficial-cyber/aipusulaofficial-cyber/.github/workflows/reusable-engineering-contract.yml@4d6e03336f6d84789a6697735c3449fce30ae27f
     with:
       python-version: "3.12"
       run-tests: true
