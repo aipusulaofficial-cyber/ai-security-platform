@@ -25,7 +25,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           mkdir -p artifacts
-          python -m pytest -q --cov=. --cov-report=term-missing --cov-report=xml:artifacts/coverage.xml --junitxml=artifacts/coverage-test-results.xml
+          python -m pytest -q --cov=. --cov-config=.coveragerc --cov-report=term-missing --cov-report=xml:artifacts/coverage.xml --junitxml=artifacts/coverage-test-results.xml
       - name: Generate coverage summary
         run: |
           python - <<'PY'
