@@ -17,5 +17,5 @@ def inspect_prompt(prompt: str) -> ThreatDecision:
 
 
 def require_audit_context(actor: str, request_id: str) -> None:
-    if not actor or not request_id:
+    if not actor or not actor.strip() or not request_id or not request_id.strip():
         raise ValueError("audit context required")
