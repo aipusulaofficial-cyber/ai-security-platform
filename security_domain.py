@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from policy_detector import detect_prompt_injection
+
 
 @dataclass(frozen=True)
 class ThreatDecision:
@@ -8,11 +10,10 @@ class ThreatDecision:
 
 
 def inspect_prompt(prompt: str) -> ThreatDecision:
-    p = prompt.lower()
-    indicators = ("ignore previous instructions", "system prompt", "developer message")
-    for x in indicators:
-        if x in p:
-            return ThreatDecision(True, "prompt_injection_indicator")
+    # Use the same normalization/detection rule set as the public detector.
+    decision = detect_prompt_injection(prompt)
+    if decision["detected"]:
+        return ThreatDecision(True, "prompt_injection_indicator")
     return ThreatDecision(False, "no_indicator")
 
 
