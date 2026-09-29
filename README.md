@@ -27,3 +27,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) and the ADRs directory for system boundar
 
 ## Engineering principle
 The goal is to make important behavior **explicit, testable, observable, auditable, and replaceable** without adding complexity that does not buy a measurable engineering property.
+
+
+## Portfolio evidence
+[Portfolio evidence map](docs/PORTFOLIO_EVIDENCE.md) — executable proof, architecture mapping and reviewable CI evidence.
