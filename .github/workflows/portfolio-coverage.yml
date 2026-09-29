@@ -33,10 +33,19 @@ jobs:
           from pathlib import Path
           root = ET.parse("artifacts/coverage.xml").getroot()
           tests = ET.parse("artifacts/coverage-test-results.xml").getroot()
-          summary = {"line_rate": float(root.attrib.get("line-rate", 0.0)), "tests": int(tests.attrib.get("tests", 0)), "failures": int(tests.attrib.get("failures", 0)), "errors": int(tests.attrib.get("errors", 0))}
+          suites = list(tests.iter("testsuite"))
+          if not suites:
+              raise SystemExit("JUnit XML contains no test suites")
+          summary = {
+              "line_rate": float(root.attrib.get("line-rate", 0.0)),
+              "tests": sum(int(suite.attrib.get("tests", 0)) for suite in suites),
+              "failures": sum(int(suite.attrib.get("failures", 0)) for suite in suites),
+              "errors": sum(int(suite.attrib.get("errors", 0)) for suite in suites),
+          }
           summary["coverage_percent"] = round(summary["line_rate"] * 100, 2)
           Path("artifacts/coverage-summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True)+"\n")
-          if summary["failures"] or summary["errors"]: raise SystemExit(summary)
+          if summary["tests"] < 1 or summary["failures"] or summary["errors"]:
+              raise SystemExit(f"invalid test evidence: {summary}")
           print(summary)
           PY
       - name: Upload portfolio coverage evidence
