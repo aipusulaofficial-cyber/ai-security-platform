@@ -1,5 +1,10 @@
 # AI Security Platform
 
+[![CI](https://github.com/aipusulaofficial-cyber/ai-security-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/aipusulaofficial-cyber/ai-security-platform/actions/workflows/ci.yml)
+[![Production Tests](https://github.com/aipusulaofficial-cyber/ai-security-platform/actions/workflows/production-tests.yml/badge.svg?branch=main)](https://github.com/aipusulaofficial-cyber/ai-security-platform/actions/workflows/production-tests.yml)
+[![Supply Chain](https://github.com/aipusulaofficial-cyber/ai-security-platform/actions/workflows/supply-chain.yml/badge.svg?branch=main)](https://github.com/aipusulaofficial-cyber/ai-security-platform/actions/workflows/supply-chain.yml)
+
+
 **Principal-level reference implementation** focused on security policy boundaries, threat controls, validation, auditability, and safe AI service operation.
 
 ## Engineering intent
