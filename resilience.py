@@ -18,7 +18,7 @@ def _positive_int(value: object, name: str) -> int:
     return value
 
 
-def _finite_number(value: object, name: str, *, positive: bool = False, non_negative: bool = False) -> float:
+def _finite_number(\n    value: object, name: str, *, positive: bool = False, non_negative: bool = False\n) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ValueError(f"{name} must be a finite number")
     number = float(value)
