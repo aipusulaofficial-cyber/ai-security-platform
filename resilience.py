@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import random
 import threading
 import time
@@ -9,6 +10,25 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass
+
+
+def _positive_int(value: object, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ValueError(f"{name} must be a positive integer")
+    return value
+
+
+def _finite_number(value: object, name: str, *, positive: bool = False, non_negative: bool = False) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{name} must be a finite number")
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError(f"{name} must be finite")
+    if positive and number <= 0:
+        raise ValueError(f"{name} must be positive")
+    if non_negative and number < 0:
+        raise ValueError(f"{name} must be non-negative")
+    return number
 
 
 class CircuitOpenError(RuntimeError):
@@ -26,15 +46,24 @@ class RetryPolicy:
     max_delay: float = 1.0
     jitter: float = 0.1
 
+    def __post_init__(self) -> None:
+        _positive_int(self.attempts, "attempts")
+        base_delay = _finite_number(self.base_delay, "base_delay", non_negative=True)
+        max_delay = _finite_number(self.max_delay, "max_delay", non_negative=True)
+        _finite_number(self.jitter, "jitter", non_negative=True)
+        if max_delay < base_delay:
+            raise ValueError("max_delay must be greater than or equal to base_delay")
+
     def delay(self, attempt: int) -> float:
-        raw = min(self.max_delay, self.base_delay * (2 ** max(0, attempt - 1)))
-        return max(0.0, raw + random.uniform(0.0, self.jitter))
+        _positive_int(attempt, "attempt")
+        raw = min(self.max_delay, self.base_delay * (2 ** (attempt - 1)))
+        return raw + random.uniform(0.0, self.jitter)
 
 
 class CircuitBreaker:
     def __init__(self, failure_threshold: int = 3, reset_timeout: float = 5.0):
-        if failure_threshold < 1 or reset_timeout <= 0:
-            raise ValueError("invalid circuit policy")
+        _positive_int(failure_threshold, "failure_threshold")
+        _finite_number(reset_timeout, "reset_timeout", positive=True)
         self.failure_threshold = failure_threshold
         self.reset_timeout = reset_timeout
         self._failures = 0
@@ -70,8 +99,7 @@ class CircuitBreaker:
 
 class BoundedExecutor[T]:
     def __init__(self, limit: int):
-        if limit < 1:
-            raise ValueError("limit must be positive")
+        _positive_int(limit, "limit")
         self._sem = threading.BoundedSemaphore(limit)
 
     def run(self, fn: Callable[[], T]) -> T:
@@ -85,8 +113,8 @@ class BoundedExecutor[T]:
 
 class TokenBucket:
     def __init__(self, rate: float, capacity: int):
-        if rate <= 0 or capacity < 1:
-            raise ValueError("invalid rate limit")
+        _finite_number(rate, "rate", positive=True)
+        _positive_int(capacity, "capacity")
         self.rate = rate
         self.capacity = float(capacity)
         self.tokens = float(capacity)
@@ -94,8 +122,7 @@ class TokenBucket:
         self._lock = threading.Lock()
 
     def allow(self, cost: float = 1.0) -> bool:
-        if cost <= 0:
-            raise ValueError("cost must be positive")
+        _finite_number(cost, "cost", positive=True)
         with self._lock:
             now = time.monotonic()
             self.tokens = min(self.capacity, self.tokens + (now - self.updated) * self.rate)
@@ -126,8 +153,7 @@ class IdempotencyKeyStore[T]:
 
 
 def call_with_timeout[T](fn: Callable[[], T], timeout_seconds: float) -> T:
-    if timeout_seconds <= 0:
-        raise ValueError("timeout must be positive")
+    _finite_number(timeout_seconds, "timeout_seconds", positive=True)
     executor = ThreadPoolExecutor(max_workers=1)
     future = executor.submit(fn)
     try:
@@ -159,8 +185,6 @@ def call_with_retry[T](
     retryable: Callable[[Exception], bool],
     breaker: CircuitBreaker | None = None,
 ) -> T:
-    if policy.attempts < 1:
-        raise ValueError("attempts must be positive")
     if breaker is not None and not breaker.allow():
         raise CircuitOpenError("circuit is open")
     for attempt in range(1, policy.attempts + 1):
