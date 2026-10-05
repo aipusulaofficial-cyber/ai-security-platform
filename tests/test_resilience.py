@@ -87,3 +87,62 @@ def test_circuit_open():
         b.record_failure()
     with pytest.raises(CircuitOpenError):
         call_with_retry(lambda: "x", policy=RetryPolicy(1), retryable=lambda e: True, breaker=b)
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf"), True, False])
+def test_token_bucket_rejects_non_finite_and_bool_cost_without_poisoning_state(bad):
+    bucket = TokenBucket(10.0, 2)
+    before = bucket.tokens
+    with pytest.raises(ValueError):
+        bucket.allow(bad)
+    assert bucket.tokens == before
+    assert bucket.allow(1.0)
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf"), True, False, 0, -1])
+def test_token_bucket_rejects_invalid_rate(bad):
+    with pytest.raises(ValueError):
+        TokenBucket(bad, 1)
+
+
+@pytest.mark.parametrize("bad", [True, False, 0, -1, 1.5])
+def test_positive_integer_boundaries_are_strict(bad):
+    with pytest.raises(ValueError):
+        BoundedExecutor(bad)
+    with pytest.raises(ValueError):
+        CircuitBreaker(bad, 1.0)
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf"), True, False, 0, -1])
+def test_timeout_rejects_invalid_values(bad):
+    with pytest.raises(ValueError):
+        call_with_timeout(lambda: "never-started", bad)
+
+
+@pytest.mark.parametrize("field,bad", [
+    ("base_delay", float("nan")),
+    ("base_delay", float("inf")),
+    ("max_delay", float("nan")),
+    ("max_delay", float("inf")),
+    ("jitter", float("nan")),
+    ("jitter", float("inf")),
+    ("jitter", True),
+])
+def test_retry_policy_rejects_non_finite_or_bool_timing(field, bad):
+    kwargs = {field: bad}
+    with pytest.raises(ValueError):
+        RetryPolicy(**kwargs)
+
+
+def test_retry_policy_rejects_invalid_attempts_and_delay_ordering():
+    for bad in (True, False, 0, -1, 1.5):
+        with pytest.raises(ValueError):
+            RetryPolicy(attempts=bad)
+    with pytest.raises(ValueError):
+        RetryPolicy(base_delay=2.0, max_delay=1.0)
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf"), True, False, 0, -1])
+def test_circuit_breaker_rejects_invalid_reset_timeout(bad):
+    with pytest.raises(ValueError):
+        CircuitBreaker(1, bad)
